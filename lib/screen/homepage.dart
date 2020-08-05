@@ -1,14 +1,19 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:news_app/Networking/article_fetching.dart';
 import 'package:news_app/helper/category_list.dart';
 import 'package:news_app/models/article_model.dart';
 import 'package:news_app/models/category_model.dart';
 import 'package:news_app/screen/category_view.dart';
 
+import '../country_select.dart';
 import 'article_view.dart';
 
 class HomePage extends StatefulWidget {
+  final countryName;
+  HomePage(this.countryName);
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -17,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   List<CategoryModel> categories = List<CategoryModel>();
   List<ArticleModel> newsarticle = List<ArticleModel>();
   bool _isLoading = true;
+  Color _iconColor = Colors.blue;
   @override
   void initState() {
     super.initState();
@@ -26,7 +32,7 @@ class _HomePageState extends State<HomePage> {
 
   getNews() async {
     News newsClass = News();
-    await newsClass.getNews();
+    await newsClass.getNews(widget.countryName);
     newsarticle = newsClass.newsArticles;
     setState(() {
       _isLoading = false;
@@ -37,17 +43,42 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          elevation: 0.0,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text("Flutter"),
-              Text(
-                "News",
-                style: TextStyle(color: Colors.blue),
+        elevation: 0.0,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Flutter"),
+            Text(
+              "News",
+              style: TextStyle(color: Colors.blue),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings, color: Colors.blue),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => CountryPicker()));
+            },
+          ),
+          IconButton(
+              icon: Icon(
+                Icons.lightbulb_outline,
+                color: _iconColor,
               ),
-            ],
-          )),
+              onPressed: () {
+                setState(() {
+                  if (_iconColor == Colors.black) {
+                    _iconColor = Colors.blue;
+                  } else {
+                    _iconColor = Colors.black;
+                  }
+                });
+                AdaptiveTheme.of(context).toggleThemeMode();
+              }),
+        ],
+      ),
       body: _isLoading
           ? Center(
               child: Container(
@@ -59,6 +90,32 @@ class _HomePageState extends State<HomePage> {
                 padding: EdgeInsets.symmetric(horizontal: 11),
                 child: Column(
                   children: <Widget>[
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        RichText(
+                            textAlign: TextAlign.start,
+                            text: TextSpan(
+                                text: 'Country : ',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20.0),
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        '${widget.countryName.toString().toUpperCase()}',
+                                    style: TextStyle(
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0),
+                                  )
+                                ])),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
                     //Categories
                     Container(
                       height: 70,
@@ -67,8 +124,10 @@ class _HomePageState extends State<HomePage> {
                           scrollDirection: Axis.horizontal,
                           itemCount: categories.length,
                           itemBuilder: (context, index) {
-                            return CategoryTile(categories[index].imageUrl,
-                                categories[index].categoryName);
+                            return CategoryTile(
+                                categories[index].imageUrl,
+                                categories[index].categoryName,
+                                widget.countryName);
                           }),
                     ),
                     //Posts
@@ -85,6 +144,7 @@ class _HomePageState extends State<HomePage> {
                               description: newsarticle[index].description,
                               title: newsarticle[index].title,
                               url: newsarticle[index].url,
+                              dateTime: newsarticle[index].publishedAt,
                             );
                           }),
                     )
@@ -97,8 +157,8 @@ class _HomePageState extends State<HomePage> {
 }
 
 class CategoryTile extends StatelessWidget {
-  final imageUrl, categoryName;
-  CategoryTile(this.imageUrl, this.categoryName);
+  final imageUrl, categoryName, countryName;
+  CategoryTile(this.imageUrl, this.categoryName, this.countryName);
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -108,6 +168,7 @@ class CategoryTile extends StatelessWidget {
             MaterialPageRoute(
                 builder: (context) => CategoryView(
                       category: categoryName.toString().toLowerCase(),
+                      country: countryName.toString().toLowerCase(),
                     )));
       },
       child: Container(
@@ -145,12 +206,17 @@ class CategoryTile extends StatelessWidget {
 }
 
 class BlogTile extends StatelessWidget {
-  final imageUrl, title, description, url;
+  final imageUrl, title, description, url, dateTime;
 
-  BlogTile({this.imageUrl, this.description, this.title, this.url});
+  BlogTile(
+      {this.imageUrl, this.description, this.title, this.url, this.dateTime});
 
   @override
   Widget build(BuildContext context) {
+    String newDate;
+    DateTime datTime = DateTime.parse(dateTime);
+    newDate = Jiffy(datTime).format("MMMM do yyyy, h:mm:ss a");
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -163,10 +229,19 @@ class BlogTile extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.only(bottom: 18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(imageUrl),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            Text(
+              newDate,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: Colors.black),
             ),
             SizedBox(
               height: 8,
@@ -179,6 +254,9 @@ class BlogTile extends StatelessWidget {
               height: 8,
             ),
             Text(description, style: TextStyle(color: Colors.black54)),
+            SizedBox(
+              height: 12,
+            ),
           ],
         ),
       ),

@@ -6,9 +6,9 @@ import 'package:http/http.dart' as http;
 class CategoryNews {
   List<ArticleModel> newsArticles = [];
 
-  Future<void> getNews(String category) async {
+  Future<void> getNews(String category, String country) async {
     String url =
-        "http://newsapi.org/v2/top-headlines?category=$category&country=us&apiKey=82db3e64627e423eac40b56a1c77999a";
+        "http://newsapi.org/v2/top-headlines?category=$category&country=$country&apiKey=82db3e64627e423eac40b56a1c77999a";
 
     var response = await http.get(url);
     var jsonData = jsonDecode(response.body);

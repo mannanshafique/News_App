@@ -5,8 +5,8 @@ import 'package:news_app/models/article_model.dart';
 import 'article_view.dart';
 
 class CategoryView extends StatefulWidget {
-  final String category;
-  CategoryView({this.category});
+  final String category, country;
+  CategoryView({this.category, this.country});
 
   @override
   _CategoryViewState createState() => _CategoryViewState();
@@ -23,7 +23,7 @@ class _CategoryViewState extends State<CategoryView> {
 
   getCategoryNews() async {
     CategoryNews newsClass = CategoryNews();
-    await newsClass.getNews(widget.category);
+    await newsClass.getNews(widget.category, widget.country);
     newsarticle = newsClass.newsArticles;
     setState(() {
       _isLoading = false;
@@ -72,10 +72,10 @@ class _CategoryViewState extends State<CategoryView> {
                           physics: BouncingScrollPhysics(),
                           itemBuilder: (context, index) {
                             return BlogTile(
-                              imageUrl: newsarticle[index].urlToImage,
-                              description: newsarticle[index].description,
-                              title: newsarticle[index].title,
-                              url: newsarticle[index].url,
+                              imageUrl: newsarticle[index].urlToImage ?? "",
+                              description: newsarticle[index].description ?? "",
+                              title: newsarticle[index].title ?? "",
+                              url: newsarticle[index].url ?? "",
                             );
                           }),
                     )
