@@ -8,7 +8,7 @@ import 'package:news_app/models/article_model.dart';
 import 'package:news_app/models/category_model.dart';
 import 'package:news_app/screen/category_view.dart';
 
-import '../country_select.dart';
+import 'country_select.dart';
 import 'article_view.dart';
 
 class HomePage extends StatefulWidget {
